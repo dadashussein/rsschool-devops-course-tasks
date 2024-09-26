@@ -1,23 +1,18 @@
 name: Terraform Deploy
 
 on:
-  pull_request:
   push:
     branches:
       - main
 
 jobs:
-  terraform-check:
+  deploy:
     runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
 
-    - name: Terraform Format Check
-      run: terraform fmt -check
+    permissions:
+      id-token: write
+      contents: read
 
-  terraform-plan:
-    runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -31,20 +26,8 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
-    - name: Terraform Plan
+    - name: Terraform plan
       run: terraform plan
-
-  terraform-apply:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: arn:aws:iam::051826725870:role/git_action
-        aws-region: eu-central-1
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
