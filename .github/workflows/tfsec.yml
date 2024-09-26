@@ -68,5 +68,10 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
+    - name: Terraform Import (if needed)
+      run: |
+        terraform import aws_s3_bucket.terraform_state dadodevops || true
+      continue-on-error: true
+
     - name: Terraform Apply
       run: terraform apply -auto-approve
