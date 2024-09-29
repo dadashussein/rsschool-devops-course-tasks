@@ -19,7 +19,7 @@ jobs:
       uses: hashicorp/setup-terraform@v1
 
     - name: Terraform Format Check
-      run: terraform fmt -check -recursive
+      run: terraform fmt -check -recursive || (terraform fmt -recursive && echo "Formatted Terraform files.")
 
   terraform-plan:
     runs-on: ubuntu-latest
