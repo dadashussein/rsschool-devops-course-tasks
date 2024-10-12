@@ -16,13 +16,13 @@ jobs:
         working-directory: ./task_2
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Format Check
-      run: terraform fmt -check -recursive || (terraform fmt -recursive && echo "Formatted Terraform files.")
+    - name: Terraform format  
+      run: terraform fmt -check
 
   terraform-plan:
     runs-on: ubuntu-latest
