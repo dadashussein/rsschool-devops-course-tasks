@@ -2,11 +2,9 @@ name: Terraform Workflow
 
 on:
   push:
-    branches:
-      - task-2
+    branches: [task-2]
   pull_request:
-    branches:
-      - task-2
+    branches: [task-2]
 
 jobs:
   terraform-check:
@@ -15,14 +13,9 @@ jobs:
       run:
         working-directory: ./task_2
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-
-    - name: Terraform Format Check
-      run: terraform fmt -check -recursive || (terraform fmt -recursive && echo "Formatted Terraform files.")
+    - uses: actions/checkout@v3
+    - uses: hashicorp/setup-terraform@v2
+    - run: terraform fmt -check -recursive || (terraform fmt -recursive && git diff --exit-code)
 
   terraform-plan:
     runs-on: ubuntu-latest
@@ -33,23 +26,20 @@ jobs:
       run:
         working-directory: ./task_2
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-
-    - name: Configure AWS credentials
+    - uses: actions/checkout@v3
+    - uses: hashicorp/setup-terraform@v2
+    - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: arn:aws:iam::051826725870:role/git_action
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
-
-    - name: Terraform Init
-      run: terraform init
-
-    - name: Terraform Plan
-      run: terraform plan
+    - run: terraform init
+    - run: terraform plan -out=tfplan
+    - uses: actions/upload-artifact@v3
+      with:
+        name: tfplan
+        path: ./task_2/tfplan
 
   terraform-apply:
     runs-on: ubuntu-latest
@@ -62,25 +52,19 @@ jobs:
       run:
         working-directory: ./task_2
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-
-    - name: Configure AWS credentials
+    - uses: actions/checkout@v3
+    - uses: hashicorp/setup-terraform@v2
+    - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: arn:aws:iam::051826725870:role/git_action
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
-
-    - name: Terraform Init
-      run: terraform init
-
-    - name: Terraform Import (if needed)
-      run: |
-        terraform import aws_s3_bucket.terraform_state dadodevops || true
+    - uses: actions/download-artifact@v3
+      with:
+        name: tfplan
+        path: ./task_2
+    - run: terraform init
+    - run: terraform import aws_s3_bucket.terraform_state dadodevops || true
       continue-on-error: true
-
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
+    - run: terraform apply tfplan
