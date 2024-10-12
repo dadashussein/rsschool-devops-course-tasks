@@ -3,14 +3,17 @@ name: Terraform Workflow
 on:
   push:
     branches:
-      - main
+      - task-2
   pull_request:
     branches:
-      - main
+      - task-2
 
 jobs:
   terraform-check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./task_2
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -26,6 +29,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    defaults:
+      run:
+        working-directory: ./task_2
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -52,6 +58,9 @@ jobs:
       contents: read
     needs: [terraform-check, terraform-plan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: ./task_2
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
