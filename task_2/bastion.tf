@@ -1,8 +1,8 @@
 resource "aws_instance" "bastion" {
-  ami                    = var.ami_id
-  instance_type          = "t2.micro"
-  subnet_id              = aws_subnet.public_subnet_1.id 
-  key_name               = var.key_name 
+  ami                         = var.ami_id
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.public_subnet_1.id
+  key_name                    = var.key_name
   associate_public_ip_address = true
 
   tags = merge(var.tags, {

@@ -44,7 +44,7 @@ variable "ami_id" {
 
 variable "key_name" {
   description = "Key pair to access the bastion host"
-  default     = "my-key-pair" 
+  default     = "my-key-pair"
 }
 
 variable "nat_instance_ami" {
