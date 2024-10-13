@@ -35,3 +35,19 @@ variable "tags" {
     Environment = "Development"
   }
 }
+
+
+variable "ami_id" {
+  description = "Amazon Linux 2 AMI for the Bastion Host"
+  default     = "ami-011f11b2ae563e78c"
+}
+
+variable "key_name" {
+  description = "Key pair to access the bastion host"
+  default     = "my-key-pair" 
+}
+
+variable "nat_instance_ami" {
+  description = "AMI for NAT instance (Amazon Linux 2 with NAT preconfigured)"
+  default     = "ami-011f11b2ae563e78c"
+}
