@@ -3,29 +3,35 @@ name: Terraform Workflow
 on:
   push:
     branches:
-      - main
+      - task-2
   pull_request:
     branches:
-      - main
+      - task-2
 
 jobs:
   terraform-check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./task_2
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Format Check
-      run: terraform fmt -check -recursive || (terraform fmt -recursive && echo "Formatted Terraform files.")
+    - name: Terraform format  
+      run: terraform fmt -check
 
   terraform-plan:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+    defaults:
+      run:
+        working-directory: ./task_2
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -36,7 +42,8 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: arn:aws:iam::051826725870:role/git_action
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
 
     - name: Terraform Init
@@ -52,6 +59,9 @@ jobs:
       contents: read
     needs: [terraform-check, terraform-plan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: ./task_2
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -62,7 +72,8 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: arn:aws:iam::051826725870:role/git_action
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
 
     - name: Terraform Init
