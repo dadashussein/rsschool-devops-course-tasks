@@ -2,6 +2,8 @@ variable "region" {
   default = "eu-central-1"
 }
 
+# Networking Variables
+
 variable "vpc_cidr_block" {
   description = "CIDR block for the VPC"
   default     = "10.0.0.0/16"
@@ -27,27 +29,24 @@ variable "private_subnet_2_cidr" {
   default     = "10.0.4.0/24"
 }
 
-variable "tags" {
-  description = "Tags for AWS resources"
-  type        = map(string)
-  default = {
-    Name        = "task-2-vpc"
-    Environment = "Development"
-  }
+variable "availability_zones" {
+  description = "Availability Zones"
+  type        = list(string)
+  default     = ["eu-central-1a", "eu-central-1b"]
 }
 
 
-variable "ami_id" {
-  description = "Amazon Linux 2 AMI for the Bastion Host"
-  default     = "ami-011f11b2ae563e78c"
+variable "ec2_amazon_linux_ami" {
+  description = "EC2 Instance Image for Bastion Host and Testing"
+  default     = "ami-0e6a13e7a5b66ff4d"
 }
 
-variable "key_name" {
-  description = "Key pair to access the bastion host"
-  default     = "my-key-pair"
+variable "ssh_pk" {
+  description = "SSH Public Key to connect to Bastion Host"
+  type        = string
 }
 
-variable "nat_instance_ami" {
-  description = "AMI for NAT instance (Amazon Linux 2 with NAT preconfigured)"
-  default     = "ami-011f11b2ae563e78c"
+variable "ssh_inbound_ip" {
+  description = "Specify CIDR block to limit inbound ssh traffic to the NAT Instance/Bastion Host"
+  default     = ["0.0.0.0/0"]
 }
