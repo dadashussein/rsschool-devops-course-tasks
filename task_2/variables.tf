@@ -4,7 +4,7 @@ variable "region" {
 
 # Networking Variables
 
-variable "vpc_cidr_block" {
+variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   default     = "10.0.0.0/16"
 }
@@ -38,7 +38,7 @@ variable "availability_zones" {
 
 variable "ec2_amazon_linux_ami" {
   description = "EC2 Instance Image for Bastion Host and Testing"
-  default     = "ami-0e6a13e7a5b66ff4d"
+  default     = "ami-0e9377e5e340374c9"
 }
 
 variable "ssh_pk" {
@@ -49,4 +49,9 @@ variable "ssh_pk" {
 variable "ssh_inbound_ip" {
   description = "Specify CIDR block to limit inbound ssh traffic to the NAT Instance/Bastion Host"
   default     = ["0.0.0.0/0"]
+}
+
+variable "token" {
+  description = "k3s Server token for k3s Agents"
+  type        = string
 }

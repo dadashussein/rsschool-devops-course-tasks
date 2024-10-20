@@ -13,12 +13,12 @@ resource "aws_instance" "nat_instance" {
   }
   user_data                   = <<-EOL
                 #! /bin/bash
-                sudo yum install iptables-services -y
-                sudo systemctl enable iptables
-                sudo systemctl start iptables
+                sudo apt-get update
+                sudo apt-get install -y iptables-persistent
                 sudo sysctl -w net.ipv4.ip_forward=1
-                sudo /sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-                sudo /sbin/iptables -F FORWARD
+                sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+                sudo iptables -F FORWARD
+                sudo netfilter-persistent save
               EOL
   user_data_replace_on_change = true
 }
@@ -32,5 +32,27 @@ resource "aws_instance" "test_ec2" {
   key_name               = aws_key_pair.ssh_key.key_name
   tags = {
     Name = "Test Instance"
+  }
+}
+
+resource "aws_instance" "k3s_server" {
+  ami                    = var.ec2_amazon_linux_ami
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.private_subnet_1.id
+  vpc_security_group_ids = [aws_security_group.k3s_server_sg.id]
+  key_name               = aws_key_pair.ssh_key.key_name
+  tags = {
+    Name = "k3s Server Instance"
+  }
+}
+
+resource "aws_instance" "k3s_agent" {
+  ami                    = var.ec2_amazon_linux_ami
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.private_subnet_2.id
+  vpc_security_group_ids = [aws_security_group.k3s_agent_sg.id]
+  key_name               = aws_key_pair.ssh_key.key_name
+  tags = {
+    Name = "K3s Agent Instance"
   }
 }
