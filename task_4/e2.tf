@@ -11,7 +11,7 @@ resource "aws_instance" "jenkins_server" {
     volume_size = 20
   }
 
-  user_data = templatefile("${path.module}/scripts/install-jenkins", {
+  user_data = templatefile("${path.module}/scripts/install-jenkins.sh", {
     jenkins_admin_password = var.jenkins_admin_password
   })
 
