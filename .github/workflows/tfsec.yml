@@ -13,20 +13,20 @@ on:
         default: 'warning'
         type: choice
         options:
-        - info
-        - warning
-        - debug
+          - info
+          - warning
+          - debug
   pull_request:
     types:
       - opened        # Trigger when a pull request is opened
       - synchronize   # Trigger when new commits are pushed to an open pull request
       - reopened      # Trigger when a previously closed pull request is reopened
     branches:
-      - main
+      - task-4  # Trigger for PRs against the task-4 branch
   push:
     branches:
-      - main  # Trigger this workflow on push to the main branch   
-      
+      - task-4  # Trigger this workflow on push to the task-4 branch   
+
 jobs:
   # Job 1: Terraform Formatting Check
   terraform-check:
@@ -71,13 +71,13 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ./task_4  # Specify the directory for the task
-        run: terraform plan"
+        run: terraform plan
 
-  # Job 3: Terraform Apply (Only after merge to main)
+  # Job 3: Terraform Apply (Only after merge to task-4 branch)
   terraform-apply:
     name: "Terraform Apply"
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Run on push to main branch
+    if: github.event_name == 'push' && github.ref == 'refs/heads/task-4'  # Run on push to task-4 branch
     needs: terraform-plan # This job will only run if terraform-plan succeeds
     steps:
       - name: Checkout code
