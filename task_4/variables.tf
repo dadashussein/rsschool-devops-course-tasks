@@ -14,12 +14,12 @@ variable "ami_id" {
 variable "key_name" {
   description = "Name of the SSH key pair"
   type        = string
-  default = "jenkins"
+  default     = "jenkins"
 }
 
 variable "jenkins_admin_password" {
   description = "Jenkins admin password"
   type        = string
   sensitive   = true
-  default = "terraform123"
+  default     = "terraform123"
 }
