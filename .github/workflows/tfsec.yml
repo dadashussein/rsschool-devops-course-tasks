@@ -1,85 +1,104 @@
-name: Terraform Workflow
+name: "Terraform Workflow"
+
+permissions:
+  id-token: write
+  contents: read
 
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+  pull_request:
+    types:
+      - opened        # Trigger when a pull request is opened
+      - synchronize   # Trigger when new commits are pushed to an open pull request
+      - reopened      # Trigger when a previously closed pull request is reopened
+    branches:
+      - main
   push:
     branches:
-      - task_3
-
+      - main  # Trigger this workflow on push to the main branch   
+      
 jobs:
+  # Job 1: Terraform Formatting Check
   terraform-check:
+    name: "Terraform Format Check"
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./task_2
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.6"
 
-    - name: Terraform format  
-      run: terraform fmt -check
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive 
 
+  # Job 2: Terraform Plan
   terraform-plan:
+    name: "Terraform Plan"
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    defaults:
-      run:
-        working-directory: ./task_2
+    needs: terraform-check # This job will only run if terraform-check succeeds
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::051826725870:role/git_action
+          
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.6"
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      - name: Terraform Init
+        working-directory: ./task_4  # Specify the directory for the task
+        run: terraform init
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-central-1
+      - name: Terraform Plan
+        working-directory: ./task_4  # Specify the directory for the task
+        run: terraform plan"
 
-    - name: Terraform Init
-      run: terraform init
-
-    - name: Terraform Plan
-      run: terraform plan
-
+  # Job 3: Terraform Apply (Only after merge to main)
   terraform-apply:
+    name: "Terraform Apply"
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    needs: [terraform-check, terraform-plan]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    defaults:
-      run:
-        working-directory: ./task_2
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Run on push to main branch
+    needs: terraform-plan # This job will only run if terraform-plan succeeds
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::051826725870:role/git_action 
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.6"
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-central-1
+      - name: Terraform Init
+        working-directory: ./task_4
+        run: terraform init
 
-    - name: Terraform Init
-      run: terraform init
-
-    - name: Terraform Import (if needed)
-      run: |
-        terraform import aws_s3_bucket.terraform_state dadodevops || true
-      continue-on-error: true
-
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
+      - name: Terraform Apply
+        working-directory: ./task_4  # Specify the directory for the task
+        run: terraform apply -auto-approve
