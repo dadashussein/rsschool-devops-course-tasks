@@ -8,70 +8,71 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   terraform-check:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-    - name: Terraform Format Check
-      run: terraform fmt -check -recursive || (terraform fmt -recursive && echo "Formatted Terraform files.")
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive || (terraform fmt -recursive && echo "Formatted Terraform files.")
 
   terraform-plan:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: arn:aws:iam::051826725870:role/git_action
-        aws-region: eu-central-1
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::051826725870:role/git_action
+          aws-region: eu-central-1
+          audience: sts.amazonaws.com
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Plan
-      run: terraform plan
+      - name: Terraform Plan
+        run: terraform plan
 
   terraform-apply:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     needs: [terraform-check, terraform-plan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: arn:aws:iam::051826725870:role/git_action
-        aws-region: eu-central-1
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::051826725870:role/git_action
+          aws-region: eu-central-1
+          audience: sts.amazonaws.com
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Import (if needed)
-      run: |
-        terraform import aws_s3_bucket.terraform_state dadodevops || true
-      continue-on-error: true
+      - name: Terraform Import State Bucket
+        run: |
+          terraform import aws_s3_bucket.terraform_state dadodevops || true
+        continue-on-error: true
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
