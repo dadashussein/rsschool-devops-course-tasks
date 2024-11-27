@@ -6,8 +6,8 @@ resource "aws_key_pair" "k3s_key" {
 
 # EC2 Instance
 resource "aws_instance" "k3s_server" {
-  ami           = "ami-0ec7f9846da6b0f61"
-  instance_type = "t3.small"
+  ami           = "ami-0e8d228ad90af673b"
+  instance_type = "t2.micro"
 
   iam_instance_profile = aws_iam_instance_profile.ec2_ecr_profile.name
   subnet_id                   = aws_subnet.k3s_subnet.id

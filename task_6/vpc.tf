@@ -1,6 +1,6 @@
 # VPC and Network Configuration
 resource "aws_vpc" "k3s_vpc" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = var.vpc_cidr_block
   enable_dns_hostnames = true
   enable_dns_support   = true
 
@@ -19,8 +19,8 @@ resource "aws_internet_gateway" "k3s_igw" {
 
 resource "aws_subnet" "k3s_subnet" {
   vpc_id                  = aws_vpc.k3s_vpc.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "eu-central-1a"
+  cidr_block              = var.subnet_cidr_block
+  availability_zone       = var.availability_zone
   map_public_ip_on_launch = true
 
   tags = {
