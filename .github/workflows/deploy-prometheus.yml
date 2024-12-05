@@ -1,0 +1,38 @@
+name: Deploy to K3s Cluster
+
+on:
+  push:
+    branches:
+      - task-7
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up K3s Cluster with Calico and Helm
+      uses: githubocto/k3s-with-calico-and-helm@v1
+      with:
+        k3s-version: v1.27.3+k3s1 # Optional, specify the K3s version
+        calico-version: v3.25.0   # Optional, specify the Calico version
+        helm-version: v3.12.1     # Optional, specify the Helm version
+
+    - name: Configure kubectl
+      run: |
+        echo "Setting up kubectl config"
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+
+    - name: Deploy Application with Helm
+      run: |
+        echo "Deploying application using Helm"
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm install my-release bitnami/nginx
+
+    - name: Verify Deployment
+      run: |
+        echo "Verifying deployment"
+        kubectl get pods -n default
