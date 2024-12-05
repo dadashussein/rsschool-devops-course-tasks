@@ -44,10 +44,24 @@ jobs:
 
     - name: Deploy Prometheus
       run: |
+        # Delete existing prometheus resources if they exist
+        kubectl delete clusterrole prometheus-grafana-clusterrole --ignore-not-found
+        kubectl delete clusterrolebinding prometheus-grafana-clusterrolebinding --ignore-not-found
+        
+        # Delete existing prometheus release if it exists
+        helm uninstall prometheus -n monitoring --ignore-not-found
+        
+        # Wait for resources to be fully deleted
+        sleep 30
+        
+        # Install prometheus
         helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
           --namespace monitoring \
           --create-namespace \
-          --wait
+          --wait \
+          --timeout 10m \
+          --set grafana.serviceMonitor.enabled=true \
+          --set prometheus.serviceMonitor.enabled=true
 
     - name: Install Node Exporter
       run: |
