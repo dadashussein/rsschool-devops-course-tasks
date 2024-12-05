@@ -13,24 +13,41 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: unnecessary
+        if_key_exists: replace
+
+    - name: Adding Known Hosts
+      run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+
     - name: Set up Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
         helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
         helm repo update
 
-    - name: Set up Kubernetes context
+    - name: Create kubeconfig
       run: |
-        echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
-        kubectl config use-context your-cluster
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+        chmod 600 $HOME/.kube/config
 
     - name: Create monitoring namespace (if it doesn't exist)
       run: |
         kubectl create ns monitoring || true
 
-    - name: Install Prometheus
+    - name: Deploy Prometheus
       run: |
-        helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring
+        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+          --namespace monitoring \
+          --create-namespace \
+          --wait
 
     - name: Install Node Exporter
       run: |
