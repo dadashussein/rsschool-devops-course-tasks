@@ -14,9 +14,13 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@master
+      - name: Set up Docker
+        uses: docker/setup-docker@v2
       - name: k3s
         uses: yellowmegaman/k3s-gha@master
         with:
+          k3s_tag: latest
+          install_kubectl: true
           custom_registry: true
       - name: try to use kubeconfig
         run: kubectl get ns
