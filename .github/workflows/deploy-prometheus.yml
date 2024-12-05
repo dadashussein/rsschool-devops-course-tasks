@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3 - name: Install SSH key
+      uses: actions/    - name: Install SSH key
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -39,3 +39,15 @@ jobs:
     - name: Create monitoring namespace (if it doesn't exist)
       run: |
         kubectl create ns monitoring || true
+
+    - name: Deploy Prometheus
+      run: |
+        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+          --namespace monitoring \
+          --create-namespace \
+          --wait
+-prometheus-stack -n monitoring
+
+    - name: Install Node Exporter
+      run: |
+        helm install node-exporter prometheus-community/prometheus-node-exporter -n monitoringter -n monitoring
