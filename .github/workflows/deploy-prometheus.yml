@@ -38,30 +38,45 @@ jobs:
         echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
         chmod 600 $HOME/.kube/config
 
-    - name: Create monitoring namespace (if it doesn't exist)
-      run: |
-        kubectl create ns monitoring || true
-
     - name: Deploy Prometheus
       run: |
-        # Delete existing prometheus resources if they exist
-        kubectl delete clusterrole prometheus-grafana-clusterrole --ignore-not-found
-        kubectl delete clusterrolebinding prometheus-grafana-clusterrolebinding --ignore-not-found
-        
-        # Delete existing prometheus release if it exists
+        # Delete existing prometheus releases and resources
         helm uninstall prometheus -n monitoring --ignore-not-found
+        helm uninstall prometheus-stack -n monitoring --ignore-not-found
+        
+        # Delete all related ClusterRoles
+        kubectl delete clusterrole prometheus-grafana-clusterrole --ignore-not-found
+        kubectl delete clusterrole prometheus-kube-state-metrics --ignore-not-found
+        kubectl delete clusterrole prometheus-kube-prometheus-operator --ignore-not-found
+        kubectl delete clusterrole prometheus-kube-prometheus-prometheus --ignore-not-found
+        kubectl delete clusterrole prometheus-kube-prometheus-alertmanager --ignore-not-found
+        
+        # Delete related ClusterRoleBindings
+        kubectl delete clusterrolebinding prometheus-grafana-clusterrolebinding --ignore-not-found
+        kubectl delete clusterrolebinding prometheus-kube-state-metrics --ignore-not-found
+        kubectl delete clusterrolebinding prometheus-kube-prometheus-operator --ignore-not-found
+        kubectl delete clusterrolebinding prometheus-kube-prometheus-prometheus --ignore-not-found
+        kubectl delete clusterrolebinding prometheus-kube-prometheus-alertmanager --ignore-not-found
+        
+        # Delete the monitoring namespace to ensure clean slate
+        kubectl delete namespace monitoring --ignore-not-found
         
         # Wait for resources to be fully deleted
-        sleep 30
+        sleep 45
         
-        # Install prometheus
+        # Create fresh namespace
+        kubectl create namespace monitoring
+        
+        # Install prometheus with fresh configuration
         helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
           --namespace monitoring \
           --create-namespace \
           --wait \
-          --timeout 10m \
+          --timeout 15m \
           --set grafana.serviceMonitor.enabled=true \
-          --set prometheus.serviceMonitor.enabled=true
+          --set prometheus.serviceMonitor.enabled=true \
+          --set prometheusOperator.serviceMonitor.enabled=true \
+          --set alertmanager.serviceMonitor.enabled=true
 
     - name: Install Node Exporter
       run: |
