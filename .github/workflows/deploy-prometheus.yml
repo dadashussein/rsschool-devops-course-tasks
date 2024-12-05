@@ -1,0 +1,37 @@
+name: Deploy Prometheus to Kubernetes
+
+on:
+  push:
+    branches:
+      - task-7
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm repo update
+
+    - name: Set up Kubernetes context
+      run: |
+        echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+        kubectl config use-context your-cluster
+
+    - name: Create monitoring namespace (if it doesn't exist)
+      run: |
+        kubectl create ns monitoring || true
+
+    - name: Install Prometheus
+      run: |
+        helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring
+
+    - name: Install Node Exporter
+      run: |
+        helm install node-exporter prometheus-community/prometheus-node-exporter -n monitoring
