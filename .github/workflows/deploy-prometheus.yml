@@ -35,7 +35,7 @@ jobs:
 
       - name: Deploy Prometheus Operator
         run: |
-          kubectl config set-cluster k3s --server=${{ secrets.K3S_SERVER_URL }}
+          kubectl config set-cluster k3s --server=${{ secrets.K3S_SERVER_URL }} --certificate-authority-data=${{ secrets.K3S_CA_CERT }}
           kubectl config set-credentials admin --token=${{ secrets.K3S_CLUSTER_TOKEN }}
           kubectl config set-context k3s --cluster=k3s --user=admin
           kubectl config use-context k3s
