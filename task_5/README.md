@@ -5,8 +5,10 @@
 2. **Deploy the Application**
 
    - Deploy the WordPress application using the Helm chart.
-   ![alt text](assets/install.png)
+   ![alt text](assets/deploy.png)
    - Ensure the application is accessible from the internet.
+   ![alt text](assets/internet.png)
+
 
 3. **Store Artifacts in Git**
 
@@ -16,6 +18,7 @@
 4. **Verify the Application**
 
    - Verify that the application is running and accessible.
+   ![alt text](assets/image.png)
 
 5. **Additional Tasks**
    - Implement a CI/CD pipeline to automate the deployment of the WordPress.
