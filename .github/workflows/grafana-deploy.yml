@@ -41,7 +41,7 @@ jobs:
 
       - name: Add Grafana Helm repo
         run: |
-          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add bitnami https://charts.bitnami.com/bitnami 
           helm repo update
 
       - name: Create namespace
@@ -50,17 +50,12 @@ jobs:
 
       - name: Deploy Grafana
         run: |
-          helm upgrade --install grafana grafana/grafana \
+          helm upgrade --install grafana bitnami/grafana \
             --namespace $KUBERNETES_NAMESPACE \
-            --values grafana-values.yaml \
             --set service.type=NodePort \
             --set adminPassword=rolling \
             --wait --timeout 10m
 
       - name: Verify deployment
         run: |
-          kubectl -n $KUBERNETES_NAMESPACE rollout status deployment/grafana
-          
-      - name: Get Grafana NodePort
-        run: |
-          echo "Grafana NodePort URL: http://$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}"):$(kubectl get svc -n monitoring grafana -o jsonpath='{.spec.ports[0].nodePort}')"
+          kubectl get pods -n $KUBERNETES_NAMESPACE
