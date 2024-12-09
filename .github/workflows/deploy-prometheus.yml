@@ -3,7 +3,7 @@ name: Deploy to K3s Cluster
 on:
   push:
     branches:
-      - task-8
+      - main
 
 jobs:
   deploy:
