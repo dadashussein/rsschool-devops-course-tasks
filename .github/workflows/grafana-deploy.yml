@@ -59,3 +59,7 @@ jobs:
       - name: Verify deployment
         run: |
           kubectl get pods -n $KUBERNETES_NAMESPACE
+
+      - name: Access Grafana
+        run: |
+          kubectl get svc -n $KUBERNETES_NAMESPACE
