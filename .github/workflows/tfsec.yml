@@ -14,7 +14,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: task_6
+    working-directory: task_8
 
 jobs:
   terraform-check:
