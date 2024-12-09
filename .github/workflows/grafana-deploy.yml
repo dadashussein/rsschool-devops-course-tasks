@@ -9,7 +9,7 @@ on:
 
 env:
   KUBERNETES_NAMESPACE: monitoring
-  AWS_REGION: us-east-1
+  AWS_REGION: eu-west-2
 
 jobs:
   deploy:
