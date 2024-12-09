@@ -18,6 +18,23 @@ resource "aws_security_group" "wordpress_sg" {
   }
 
   ingress {
+    description = "Allow incoming traffic for Kubernetes API server"
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+
+  ingress {
+    description = "port range for k3s apps"
+    from_port   = 30000
+    to_port     = 35000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
