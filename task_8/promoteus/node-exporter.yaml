@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: node-exporter
+  name: node-exporter
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: node-exporter
+    spec:
+      containers:
+      - name: node-exporter
+        image: quay.io/prometheus/node-exporter:v1.6.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - --web.listen-address=0.0.0.0:9100
+        - --path.procfs=/host/proc
+        - --path.sysfs=/host/sys
+        ports:
+        - name: metrics
+          containerPort: 9100
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 200m
+            memory: 50Mi
+          requests:
+            cpu: 100m
+            memory: 30Mi
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+      hostNetwork: true
+      hostPID: true
+      restartPolicy: Always
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: sys
+        hostPath:
+          path: /sys
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: node-exporter
+  name: node-exporter
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: node-exporter
+    spec:
+      containers:
+      - name: node-exporter
+        image: quay.io/prometheus/node-exporter:v1.6.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - --web.listen-address=0.0.0.0:9100
+        - --path.procfs=/host/proc
+        - --path.sysfs=/host/sys
+        ports:
+        - name: metrics
+          containerPort: 9100
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 200m
+            memory: 50Mi
+          requests:
+            cpu: 100m
+            memory: 30Mi
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+      hostNetwork: true
+      hostPID: true
+      restartPolicy: Always
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: sys
+        hostPath:
+          path: /sys
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: node-exporter
+  name: node-exporter
+  namespace: monitoring
+spec:
+  endpoints:
+  - interval: 30s
+    path: /metrics
+    port: metrics
+  selector:
+    matchLabels:
+      app: node-exporter
+  namespaceSelector:
+    matchNames:
+    - monitoring

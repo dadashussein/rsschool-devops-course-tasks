@@ -8,9 +8,8 @@ resource "aws_key_pair" "jenkins_key" {
 # EC2 Instance
 resource "aws_instance" "k3s_server" {
   ami           = "ami-0e8d228ad90af673b"
-  instance_type = "t2.large"
+  instance_type = "t2.small"
 
-  iam_instance_profile        = aws_iam_instance_profile.ec2_ecr_profile.name
   subnet_id                   = aws_subnet.k3s_subnet.id
   vpc_security_group_ids      = [aws_security_group.k3s_sg.id]
   associate_public_ip_address = true

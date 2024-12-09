@@ -1,97 +1,53 @@
-**Prometheus Deployment on Kubernetes with Helm**
+Grafana Installation (30 Points)
+Install Grafana with the Helm Chart by Bitnami
+Add the Bitnami Helm Repository:
 
-This guide provides the steps for deploying Prometheus with Helm on a Kubernetes cluster, along with the installation of Node Exporter for system metrics collection.
+bash
+Copy code
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+Install Grafana:
 
-### Prerequisites
+bash
+Copy code
+helm install grafana bitnami/grafana \
+  --namespace monitoring \
+  --create-namespace \
+  --set admin.password=yourpassword \
+  --set service.type=LoadBalancer
+Verify Installation:
 
-Before you begin, ensure you have the following:
-
-*   A running Kubernetes cluster.
-*   `kubectl` configured to access the cluster.
-*   `Helm` installed on your local machine.
-*   Sufficient permissions to deploy resources on the cluster.
-
-### 1\. Prometheus Installation
-
-**Add Prometheus Helm Chart Repository**
-
-First, you need to add the Prometheus Helm chart repository. Run the following commands to add the repository and update your Helm charts:
-
- 
-
-```bash
-kubectl create ns monitoring
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts  
-helm repo update  
-```
-
-This will add the Prometheus community charts to your Helm repositories.
-
-**Install Prometheus Using Helm**
-
-To install Prometheus along with the `kube-prometheus-stack`, run the following command:
-
-```bash
-helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring
-```
- 
- This will deploy Prometheus, Alertmanager, and Grafana, along with the necessary configurations for monitoring Kubernetes resources.
-
-### 2\. Install Node Exporter with Helm
-
-Prometheus can collect system metrics using the **Node Exporter**.
-
-**Install Node Exporter Using Helm**
-
-To install Node Exporter, which exposes system metrics like CPU usage, memory usage, and disk I/O, run the following command:
-
-
-```bash
-helm install node-exporter prometheus-community/prometheus-node-exporter -n monitoring
-```
-
-Prometheus will automatically discover the Node Exporter instance and start scraping the metrics. The Helm chart automatically configures Prometheus to scrape the Node Exporter metrics.
-
-### 3\. Verify Metrics Collection
-
-**Check Pods Status**
-
-To verify that Prometheus and Node Exporter are running properly, you can use the following command:
-
-
-```bash
+bash
+Copy code
 kubectl get pods -n monitoring
-```
+Access Grafana
+Check the Grafana service for the external IP:
+bash
+Copy code
+kubectl get svc -n monitoring
+Access Grafana using the external IP and port (default: 3000).
+2. Configure Grafana
+Add a Data Source for Prometheus
+Log in to Grafana using the admin user credentials (admin and the password set above).
+Navigate to Configuration > Data Sources > Add Data Source.
+Select Prometheus, and configure the URL to point to your Prometheus service:
+bash
+Copy code
+http://<prometheus-service-name>:<port>
+Click Save & Test to confirm the configuration.
+3. Create a Dashboard (40 Points)
+Dashboard Metrics
+Create a new Dashboard:
 
-Ensure that all Prometheus-related pods are in the **Running** state.
+Navigate to Create > Dashboard > Add a New Panel.
+Add the following metrics:
+CPU Utilization: node_cpu_seconds_total
+Memory Usage: node_memory_MemAvailable_bytes and node_memory_MemTotal_bytes
+Storage Usage: node_filesystem_avail_bytes and node_filesystem_size_bytes
+Customize Panels:
 
-**Access Prometheus Web Interface**
+Add titles and proper labels for each panel.
+Use visualization options like graphs, singlestats, and gauges for better presentation.
+Save the Dashboard and export its JSON layout:
 
-To access the Prometheus web interface, use port forwarding. Run the following command:
-
-
- 
-
-```bash
-kubectl port-forward svc/prometheus-operated 9090:9090 -n monitoring
-``` 
-
-You can now access the Prometheus web interface at `http://localhost:9090`. From here, you can query metrics and configure alerts.
-
-### 4\. Documentation
-
-**Metrics Collected**
-
-Prometheus will collect various metrics, including but not limited to:
-
-*   Kubernetes cluster metrics (pods, nodes, deployments, etc.)
-*   System metrics (CPU, memory, disk usage) from Node Exporter.
-
-**Troubleshooting**
-
-*   If you cannot access the Prometheus interface, ensure that your Kubernetes cluster is running and the port-forwarding command is executed correctly.
-*   If the pods are not running, check the logs of the Prometheus and Node Exporter pods for any errors.
-
-### Conclusion
-
-You have successfully deployed Prometheus with Helm on Kubernetes, along with Node Exporter for system metrics collection. You can now use Prometheus to monitor your Kubernetes cluster and system performance.
+Navigate to the dashboard settings, click Share > Export > Save to file.
